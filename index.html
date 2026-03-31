@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Morse Code Translator</title>
+  <style>
+    #input-form {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    textarea,
+    .output-box {
+      width: 800px;
+      max-width: 2000px;
+      min-width: 300px;
+
+      height: 150px;
+      min-height: 150px;
+
+      padding: 10px;
+      font-size: 12px;
+      text-align: left;
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+
+      resize: both;
+      overflow: auto;
+      box-sizing: border-box;
+    }
+
+    .output-box {
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="input-form">
+    <label for="input">Enter text here</label>
+    <textarea id="input"></textarea>
+  </div>
+
+  <div>
+    <label for="output">Translation</label>
+    <textarea id="output" class="output-box" readonly></textarea>
+  </div>
+
+  <p>Spaces are translated as <code>/</code>.</p>
+
+  <script>
+    let input = document.getElementById("input");
+    let output = document.getElementById("output");
+
+    const MORSE_CODE = {
+      "A": ".- ",
+      "B": "-... ",
+      "C": "-.-. ",
+      "D": "-.. ",
+      "E": ". ",
+      "F": "..-. ",
+      "G": "--. ",
+      "H": ".... ",
+      "I": ".. ",
+      "J": ".--- ",
+      "K": "-.- ",
+      "L": ".-.. ",
+      "M": "-- ",
+      "N": "-. ",
+      "O": "--- ",
+      "P": ".--. ",
+      "Q": "--.- ",
+      "R": ".-. ",
+      "S": "... ",
+      "T": "- ",
+      "U": "..- ",
+      "V": "...- ",
+      "W": ".-- ",
+      "X": "-..- ",
+      "Y": "-.-- ",
+      "Z": "--.. ",
+
+      "0": "----- ",
+      "1": ".---- ",
+      "2": "..--- ",
+      "3": "...-- ",
+      "4": "....- ",
+      "5": "..... ",
+      "6": "-.... ",
+      "7": "--... ",
+      "8": "---.. ",
+      "9": "----. ",
+
+      ".": " .-.-.-",
+      ",": "--..-- ",
+      "?": "..--.. ",
+      "!": "-.-.--",
+      "'": ".----. ",
+      "\"": ".-..-. ",
+      "/": "-..-. ",
+      "(": "-.--. ",
+      ")": "-.--.- ",
+      "&": ".-... ",
+      ":": "---... ",
+      ";": "-.-.-. ",
+      "=": "-...- ",
+      "+": ".-.-. ",
+      "-": "-....- ",
+      "_": "..--.- ",
+      "$": "...-..- ",
+      "@": ".--.-. "
+    };
+
+    input.addEventListener("input", updateOutput);
+
+    function updateOutput() {
+      output.value = translateToMorse(input.value);
+    }
+
+    function translateToMorse(text) {
+      let result = "";
+
+      for (let i = 0; i < text.length; i++) {
+        let char = text[i];
+
+        if (char === " ") {
+          result += "/ ";
+          continue;
+        }
+
+        let upperChar = char.toUpperCase();
+        let morse = MORSE_CODE[upperChar] || MORSE_CODE[char];
+
+        if (morse) {
+          if (char === "." || char === "!") {
+            result = result.replace(/\s+$/, "");
+            result += morse + " ";
+          } else {
+            result += morse;
+          }
+        } else {
+          result += char;
+        }
+      }
+
+      return result.trim();
+    }
+  </script>
+</body>
+</html>
