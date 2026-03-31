@@ -22,7 +22,7 @@
       min-height: 150px;
 
       padding: 10px;
-      font-size: 16px; /* increased from 12px */
+      font-size: 16px;
       text-align: left;
       font-family: Arial, sans-serif;
       line-height: 1.5;
@@ -114,6 +114,12 @@
       "@": ".--.-. "
     };
 
+    const EMOTICONS = [
+      ">:(", ">:)", ">:D", "D:<",
+      ":)", ":(", ";)", ":D", "D:", ";D", ":P",
+      "O_O", "^v^", "^o^", "^_^", "<3"
+    ].sort((a, b) => b.length - a.length);
+
     input.addEventListener("input", updateOutput);
 
     function updateOutput() {
@@ -124,6 +130,14 @@
       let result = "";
 
       for (let i = 0; i < text.length; i++) {
+        let emoticon = getEmoticonAt(text, i);
+
+        if (emoticon) {
+          result += emoticon;
+          i += emoticon.length - 1;
+          continue;
+        }
+
         let char = text[i];
 
         if (char === " ") {
@@ -147,6 +161,15 @@
       }
 
       return result.trim();
+    }
+
+    function getEmoticonAt(text, index) {
+      for (let emoticon of EMOTICONS) {
+        if (text.startsWith(emoticon, index)) {
+          return emoticon;
+        }
+      }
+      return "";
     }
   </script>
 </body>
