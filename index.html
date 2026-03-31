@@ -13,7 +13,8 @@
     }
 
     textarea,
-    .output-box {
+    .output-box,
+    select {
       width: 800px;
       max-width: 2000px;
       min-width: 300px;
@@ -36,10 +37,25 @@
       font-size: 20px;
       font-weight: bold;
     }
+
+    select {
+      height: auto;
+      min-height: 0;
+      resize: none;
+    }
   </style>
 </head>
 <body>
   <h1>Morse code translator</h1>
+
+  <div id="input-form">
+    <label for="mode">Translation mode</label>
+    <select id="mode">
+      <option value="text-to-morse">Text to Morse code</option>
+      <option value="morse-to-text">Morse code to text</option>
+    </select>
+  </div>
+
   <div id="input-form">
     <label for="input">Enter text here</label>
     <textarea id="input"></textarea>
@@ -50,143 +66,168 @@
     <textarea id="output" class="output-box" readonly></textarea>
   </div>
 
-  <p>Spaces are translated as <code>/</code>.</p>
+  <p>In Morse code, letters are separated by spaces and words by <code>/</code>.</p>
 
   <script>
-    let input = document.getElementById("input");
-    let output = document.getElementById("output");
+    const input = document.getElementById("input");
+    const output = document.getElementById("output");
+    const mode = document.getElementById("mode");
 
     const MORSE_CODE = {
-      "A": ".- ",
-      "B": "-... ",
-      "C": "-.-. ",
-      "D": "-.. ",
-      "E": ". ",
-      "F": "..-. ",
-      "G": "--. ",
-      "H": ".... ",
-      "I": ".. ",
-      "J": ".--- ",
-      "K": "-.- ",
-      "L": ".-.. ",
-      "M": "-- ",
-      "N": "-. ",
-      "O": "--- ",
-      "P": ".--. ",
-      "Q": "--.- ",
-      "R": ".-. ",
-      "S": "... ",
-      "T": "- ",
-      "U": "..- ",
-      "V": "...- ",
-      "W": ".-- ",
-      "X": "-..- ",
-      "Y": "-.-- ",
-      "Z": "--.. ",
+      "A": ".-",
+      "B": "-...",
+      "C": "-.-.",
+      "D": "-..",
+      "E": ".",
+      "F": "..-.",
+      "G": "--.",
+      "H": "....",
+      "I": "..",
+      "J": ".---",
+      "K": "-.-",
+      "L": ".-..",
+      "M": "--",
+      "N": "-.",
+      "O": "---",
+      "P": ".--.",
+      "Q": "--.-",
+      "R": ".-.",
+      "S": "...",
+      "T": "-",
+      "U": "..-",
+      "V": "...-",
+      "W": ".--",
+      "X": "-..-",
+      "Y": "-.--",
+      "Z": "--..",
 
-      "0": "----- ",
-      "1": ".---- ",
-      "2": "..--- ",
-      "3": "...-- ",
-      "4": "....- ",
-      "5": "..... ",
-      "6": "-.... ",
-      "7": "--... ",
-      "8": "---.. ",
-      "9": "----. ",
+      "0": "-----",
+      "1": ".----",
+      "2": "..---",
+      "3": "...--",
+      "4": "....-",
+      "5": ".....",
+      "6": "-....",
+      "7": "--...",
+      "8": "---..",
+      "9": "----.",
 
-      ".": " .-.-.-",
-      ",": "--..-- ",
-      "?": "..--.. ",
-      "!": " -.-.--",
-      "'": ".----. ",
-      "\"": ".-..-. ",
-      "/": "-..-. ",
-      "(": "-.--. ",
-      ")": "-.--.- ",
-      "&": ".-... ",
-      ":": "---... ",
-      ";": "-.-.-. ",
-      "=": "-...- ",
-      "+": ".-.-. ",
-      "-": "-....- ",
-      "_": "..--.- ",
-      "$": "...-..- ",
-      "@": ".--.-. ",
-      
-      //Separation Sign (between whole number and fraction) .-..-//
-      //Space / or |//
-      //Clear Character -.-.-//
-      //Bold begin/end -...-..//
-      //Italics begin/end ..-.-//
-      //Underline begin/end ..--.//
-      
-      "Ä": ".-.- ",
-      "Á": ".--.- ",
-      "Å": ".--.- ",
-      "É": "..-.. ",
-      "Ñ": "--.-- ",
-      "Ö": "---. ",
-      "Ü": "..-- "
+      ".": ".-.-.-",
+      ",": "--..--",
+      "?": "..--..",
+      "!": "-.-.--",
+      "'": ".----.",
+      "\"": ".-..-.",
+      "/": "-..-.",
+      "(": "-.--.",
+      ")": "-.--.-",
+      "&": ".-...",
+      ":": "---...",
+      ";": "-.-.-.",
+      "=": "-...-",
+      "+": ".-.-.",
+      "-": "-....-",
+      "_": "..--.-",
+      "$": "...-..-",
+      "@": ".--.-.",
+
+      "Ä": ".-.-",
+      "Á": ".--.-",
+      "Å": ".--.-",
+      "É": "..-..",
+      "Ñ": "--.--",
+      "Ö": "---.",
+      "Ü": "..--"
     };
 
+    const REVERSE_MORSE_CODE = {};
+    for (const key in MORSE_CODE) {
+      REVERSE_MORSE_CODE[MORSE_CODE[key]] = key;
+    }
+
     const EMOTICONS = [
-      ">:(", ">:)", ">:D", "D:<", ":)", ":(", 
+      ">:(", ">:)", ">:D", "D:<", ":)", ":(",
       ";)", ":D", "D:", ";D", ":P", "OoO", "O.O",
       "O_O", "^v^", "^o^", "^_^", "<3", "8D", "D8"
     ].sort((a, b) => b.length - a.length);
 
     input.addEventListener("input", updateOutput);
+    mode.addEventListener("change", updateOutput);
 
     function updateOutput() {
-      output.value = translateToMorse(input.value);
+      if (mode.value === "text-to-morse") {
+        output.value = translateToMorse(input.value);
+      } else {
+        output.value = translateToText(input.value);
+      }
     }
 
     function translateToMorse(text) {
       let result = "";
 
       for (let i = 0; i < text.length; i++) {
-        let emoticon = getEmoticonAt(text, i);
+        const emoticon = getEmoticonAt(text, i);
 
         if (emoticon) {
-          result += emoticon;
+          result += emoticon + " ";
           i += emoticon.length - 1;
           continue;
         }
 
-        let char = text[i];
+        const char = text[i];
 
         if (char === " ") {
           result += "/ ";
           continue;
         }
 
-        let upperChar = char.toUpperCase();
-        let morse = MORSE_CODE[upperChar] || MORSE_CODE[char];
+        const upperChar = char.toUpperCase();
+        const morse = MORSE_CODE[upperChar] || MORSE_CODE[char];
 
         if (morse) {
-          if (char === "." || char === "!") {
-            result = result.replace(/\s+$/, "");
-            result += morse + " ";
-          } else {
-            result += morse;
-          }
+          result += morse + " ";
         } else {
-          result += char;
+          result += char + " ";
         }
       }
 
       return result.trim();
     }
 
+    function translateToText(morseText) {
+      const words = morseText.trim().split(/\s*\/\s*/);
+      let result = [];
+
+      for (const word of words) {
+        if (!word.trim()) continue;
+
+        const letters = word.trim().split(/\s+/);
+        let translatedWord = "";
+
+        for (const letter of letters) {
+          if (REVERSE_MORSE_CODE[letter]) {
+            translatedWord += REVERSE_MORSE_CODE[letter];
+          } else {
+            translatedWord += letter;
+          }
+        }
+
+        result.push(translatedWord);
+      }
+
+      return result.join(" ");
+    }
+
     function getEmoticonAt(text, index) {
-      for (let emoticon of EMOTICONS) {
+      for (const emoticon of EMOTICONS) {
         if (text.startsWith(emoticon, index)) {
           return emoticon;
         }
       }
       return "";
     }
+
+    updateOutput();
   </script>
 </body>
 </html>
