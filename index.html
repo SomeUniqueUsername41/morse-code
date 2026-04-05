@@ -171,29 +171,24 @@
       return "";
     }
 
-    function translateToMorse(text) {
-      let result = "";
+    function translateToMorseLine(text) {
+      if (text === "") return "";
+
+      const parts = [];
 
       for (let i = 0; i < text.length; i++) {
         const emoticon = getEmoticonAt(text, i);
 
         if (emoticon) {
-          result += emoticon + " ";
+          parts.push(emoticon);
           i += emoticon.length - 1;
           continue;
         }
 
         const char = text[i];
 
-        // Keep line breaks without a space before them
-        if (char === "\n") {
-          result = result.trimEnd();
-          result += "\n";
-          continue;
-        }
-
         if (char === " ") {
-          result += "/ ";
+          parts.push("/");
           continue;
         }
 
@@ -201,25 +196,27 @@
         const morse = MORSE_CODE[upperChar] || MORSE_CODE[char];
 
         if (morse) {
-          result += morse + " ";
+          parts.push(morse);
         } else {
-          result += char + " ";
+          parts.push(char);
         }
       }
 
-      return result.trimEnd();
+      return parts.join(" ");
     }
 
-    function translateToText(morseText) {
-      return morseText
+    function translateToMorse(text) {
+      return text
         .split(/\r?\n/)
-        .map(translateMorseLineToText)
+        .map(translateToMorseLine)
         .join("\n");
     }
 
     function translateMorseLineToText(line) {
+      if (line.trim() === "") return "";
+
       const words = line.trim().split(/\s*\/\s*/);
-      let result = [];
+      const result = [];
 
       for (const word of words) {
         if (!word.trim()) continue;
@@ -239,6 +236,13 @@
       }
 
       return result.join(" ");
+    }
+
+    function translateToText(morseText) {
+      return morseText
+        .split(/\r?\n/)
+        .map(translateMorseLineToText)
+        .join("\n");
     }
 
     updateOutput();
