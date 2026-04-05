@@ -162,6 +162,15 @@
       }
     }
 
+    function getEmoticonAt(text, index) {
+      for (const emoticon of EMOTICONS) {
+        if (text.startsWith(emoticon, index)) {
+          return emoticon;
+        }
+      }
+      return "";
+    }
+
     function translateToMorse(text) {
       let result = "";
 
@@ -175,6 +184,13 @@
         }
 
         const char = text[i];
+
+        // Keep line breaks without a space before them
+        if (char === "\n") {
+          result = result.trimEnd();
+          result += "\n";
+          continue;
+        }
 
         if (char === " ") {
           result += "/ ";
@@ -191,11 +207,18 @@
         }
       }
 
-      return result.trim();
+      return result.trimEnd();
     }
 
     function translateToText(morseText) {
-      const words = morseText.trim().split(/\s*\/\s*/);
+      return morseText
+        .split(/\r?\n/)
+        .map(translateMorseLineToText)
+        .join("\n");
+    }
+
+    function translateMorseLineToText(line) {
+      const words = line.trim().split(/\s*\/\s*/);
       let result = [];
 
       for (const word of words) {
@@ -216,15 +239,6 @@
       }
 
       return result.join(" ");
-    }
-
-    function getEmoticonAt(text, index) {
-      for (const emoticon of EMOTICONS) {
-        if (text.startsWith(emoticon, index)) {
-          return emoticon;
-        }
-      }
-      return "";
     }
 
     updateOutput();
