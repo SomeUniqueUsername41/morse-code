@@ -53,6 +53,7 @@
     <select id="mode">
       <option value="text-to-morse">Text to Morse code</option>
       <option value="morse-to-text">Morse code to text</option>
+      <option value="text-to-tactile">Text to tactile Morse code</option>
     </select>
   </div>
 
@@ -66,7 +67,8 @@
     <textarea id="output" class="output-box" readonly></textarea>
   </div>
 
-  <p>In Morse code, letters are separated by spaces and words by <code>/</code>.</p>
+  <p>In regular Morse code, letters are separated by spaces and words by <code>/</code>.</p>
+  <p>In tactile Morse code, letters are separated by spaces and words by extra spaces.</p>
 
   <script>
     const input = document.getElementById("input");
@@ -140,6 +142,72 @@
       "Ü": "..--"
     };
 
+    const TACTILE_CODE = {
+      "A": ".|",
+      "B": "|:.",
+      "C": "|.|.",
+      "D": "|:",
+      "E": ".",
+      "F": ":|.",
+      "G": "||.",
+      "H": "::",
+      "I": ":",
+      "J": ".|||",
+      "K": "|.|",
+      "L": ".|:",
+      "M": "||",
+      "N": "|.",
+      "O": "|||",
+      "P": ".||.",
+      "Q": "||.|",
+      "R": ".|.",
+      "S": ":.",
+      "T": "|",
+      "U": ":|",
+      "V": ":.|",
+      "W": ".||",
+      "X": "|:|",
+      "Y": "|.||",
+      "Z": "||:",
+
+      "0": "|||||",
+      "1": ".||||",
+      "2": ":|||",
+      "3": ":.||",
+      "4": "::|",
+      "5": "::.",
+      "6": "|::",
+      "7": "||:.",
+      "8": "|||:",
+      "9": "||||.",
+
+      ".": ".|.|.|",
+      ",": "||:||",
+      "?": ":||:",
+      "!": "|.|.||",
+      "'": ".||||.",
+      "\"": ".|:|.",
+      "/": "|:|.",
+      "(": "|.||.",
+      ")": "|.||.|",
+      "&": ".|:.",
+      ":": "|||:.",
+      ";": "|.|.|.",
+      "=": "|:.|",
+      "+": ".|.|.",
+      "-": "|::|",
+      "_": ":||.|",
+      "$": ":.|:|",
+      "@": ".||.|.",
+
+      "Ä": ".|.|",
+      "Á": ".||.|",
+      "É": ":|:",
+      "Ñ": "||.||",
+      "Ö": "|||.",
+      "Ü": ":||"
+    };
+
     const REVERSE_MORSE_CODE = {};
     for (const key in MORSE_CODE) {
       REVERSE_MORSE_CODE[MORSE_CODE[key]] = key;
@@ -156,10 +224,16 @@
 
     function updateOutput() {
       if (mode.value === "text-to-morse") {
-        output.value = translateToMorse(input.value);
+        output.value = translateByLines(input.value, translateToMorseLine);
+      } else if (mode.value === "morse-to-text") {
+        output.value = translateByLines(input.value, translateMorseLineToText);
       } else {
-        output.value = translateToText(input.value);
+        output.value = translateByLines(input.value, translateToTactileLine);
       }
+    }
+
+    function translateByLines(text, lineTranslator) {
+      return text.split(/\r?\n/).map(lineTranslator).join("\n");
     }
 
     function getEmoticonAt(text, index) {
@@ -205,13 +279,6 @@
       return parts.join(" ");
     }
 
-    function translateToMorse(text) {
-      return text
-        .split(/\r?\n/)
-        .map(translateToMorseLine)
-        .join("\n");
-    }
-
     function translateMorseLineToText(line) {
       if (line.trim() === "") return "";
 
@@ -238,11 +305,46 @@
       return result.join(" ");
     }
 
-    function translateToText(morseText) {
-      return morseText
-        .split(/\r?\n/)
-        .map(translateMorseLineToText)
-        .join("\n");
+    function translateToTactileLine(text) {
+      let result = "";
+      let i = 0;
+
+      while (i < text.length) {
+        const emoticon = getEmoticonAt(text, i);
+
+        if (emoticon) {
+          result += emoticon + " ";
+          i += emoticon.length;
+          continue;
+        }
+
+        const char = text[i];
+
+        if (char === " ") {
+          result += "  ";
+          i++;
+          continue;
+        }
+
+        if (char === "." || char === "?" || char === "!" || char === "-" || char === "$" || char === "_") {
+          result += char;
+          i++;
+          continue;
+        }
+
+        const upperChar = char.toUpperCase();
+        const code = TACTILE_CODE[upperChar] || TACTILE_CODE[char];
+
+        if (code) {
+          result += code + " ";
+        } else {
+          result += char + " ";
+        }
+
+        i++;
+      }
+
+      return result.trimEnd();
     }
 
     updateOutput();
